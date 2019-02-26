@@ -23,6 +23,15 @@ type Locker struct {
 	state int32
 }
 
+// LockDo is just a wrapper for `Lock` + `Unlock`. It lockes the locker, runs the function `fn` and unlockes the locker.
+//
+// Warning! The `fn()` should not panic, otherwise the locker won't be unlocked
+func (l *Locker) LockDo(fn func()) {
+	l.Lock()
+	fn()
+	l.Unlock()
+}
+
 func (l *Locker) Lock() {
 	i := 0
 	for !atomic.CompareAndSwapInt32(&l.state, unlocked, locked) {
@@ -41,6 +50,7 @@ func (l *Locker) Unlock() {
 	}
 }
 
+// SetUnlocked resets the state of the locker. Use case: if you copy an object, you may want to reset this value.
 func (l *Locker) SetUnlocked() {
 	atomic.StoreInt32(&l.state, unlocked)
 }
