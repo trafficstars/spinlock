@@ -32,6 +32,14 @@ func (l *Locker) LockDo(fn func()) {
 	l.Unlock()
 }
 
+func (l *Locker) IsLocked() bool {
+	return atomic.LoadInt32(&l.state) == locked
+}
+
+func (l *Locker) TryLock() bool {
+	return atomic.CompareAndSwapInt32(&l.state, unlocked, locked)
+}
+
 func (l *Locker) Lock() {
 	i := 0
 	for !atomic.CompareAndSwapInt32(&l.state, unlocked, locked) {
